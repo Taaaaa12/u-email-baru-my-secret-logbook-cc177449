@@ -24,13 +24,29 @@ ENTRY = (
 )
 
 
+def validate(text: str) -> str:
+    """Check the entry against the competition's gates, then return it.
+
+    A valid entry is one non-empty line, at most 200 characters, with no
+    leading/trailing whitespace and no trailing newline in the file.
+    """
+    cleaned = text.strip()
+    if not cleaned:
+        raise ValueError("entry is empty")
+    if len(cleaned) > 200:
+        raise ValueError(f"entry too long: {len(cleaned)} characters")
+    if "\n" in cleaned or "\r" in cleaned:
+        raise ValueError("entry must be a single line")
+    if cleaned != text:
+        raise ValueError("entry has leading or trailing whitespace")
+    return cleaned
+
+
 def main() -> int:
-    text = ENTRY.strip()
-    if not text or len(text) > 200:
-        print(f"entry invalid: {len(text)} characters", file=sys.stderr)
-        return 1
-    if "\n" in text:
-        print("entry invalid: must be a single line", file=sys.stderr)
+    try:
+        text = validate(ENTRY)
+    except ValueError as exc:
+        print(f"entry invalid: {exc}", file=sys.stderr)
         return 1
     output_dir = os.environ.get("OUTPUT_DIR", "/output")
     os.makedirs(output_dir, exist_ok=True)
